@@ -1,19 +1,18 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
-    name='rstk',
-    version='0.1',
+    name="rstk",
+    version="0.1",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'click',
-        'pandas',
-        'numpy',
-        'scikit-learn',
-
+        "click",
+        "pandas",
+        "numpy",
+        "scikit-learn",
     ],
-    entry_points='''
+    entry_points="""
         [console_scripts]
-        rstk=rstk.cli:cli
-    '''
+        rstk=src.cli:cli
+    """,
 )

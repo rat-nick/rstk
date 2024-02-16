@@ -56,7 +56,7 @@ class Preprocessor:
 
     def determine_fill_value(self, col, strategy):
         dtype = self.data[col].dtype
-        
+
         fill_val = 0
         if dtype == "object":
             fill_val = self.data[col].mode()[0]
@@ -67,7 +67,7 @@ class Preprocessor:
                 fill_val = self.data[col].median()
             if strategy == "mode":
                 fill_val == self.data[col].mode()
-        
+
         return fill_val
 
     def normalize(
@@ -107,5 +107,6 @@ class Preprocessor:
             self.data.drop(columns=col, inplace=True)
             self.data = pd.concat([self.data, binarized_labels], axis=1)
         print(self.data)
+
     def select_features(self, columns: List[str] = []) -> pd.DataFrame:
         pass

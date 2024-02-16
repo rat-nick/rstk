@@ -45,30 +45,32 @@ def test_normalize_z_score(user_preprocessor):
     assert (1.8 >= data["age"]).all()
     assert (-1.5 <= data["age"]).all()
 
+
 def test_handle_missing_values_by_dropping(item_preprocessor):
     # grab a reference to the data for easy access
     data = item_preprocessor.data
-    
+
     item_preprocessor.handle_missing_values(strategy="drop")
 
     assert len(data) == 4
 
+
 def test_handle_missing_values_with_mean(item_preprocessor):
     data = item_preprocessor.data
-    
-    category_mode = data['category'].mode()[0]
-    
-    price_mean = data['price'].mean()
+
+    category_mode = data["category"].mode()[0]
+
+    price_mean = data["price"].mean()
     item_preprocessor.handle_missing_values(strategy="mean")
-    
-    
-    assert data.loc[6, 'price'] == price_mean
-    assert data.loc[4, 'category'] == category_mode
+
+    assert data.loc[6, "price"] == price_mean
+    assert data.loc[4, "category"] == category_mode
+
 
 def test_multilabel_binarize(item_preprocessor):
-    item_preprocessor.multilabel_binarize(['tags'])
+    item_preprocessor.multilabel_binarize(["tags"])
     data = item_preprocessor.data
-    
+
     assert "ftr_T1" in data.columns
     assert "ftr_T2" in data.columns
     assert "ftr_T3" in data.columns

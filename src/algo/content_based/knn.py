@@ -1,7 +1,9 @@
+import pickle
 from typing import List
+
+import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 
 class KNN:
@@ -9,7 +11,7 @@ class KNN:
 
     def __init__(
         self,
-        data: pd.DataFrame,
+        data: pd.DataFrame = None,
         id_column: str = None,
         feature_columns: List[str] = None,
         feature_prefix: str = "ftr",
@@ -117,3 +119,12 @@ class KNN:
 
         # translate the indicies into raw IDs
         return [self.inner2rawID[i] for i in indicies][:k]
+
+    def serialize(self, path: str):
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def deserialize(cls, path: str) -> "KNN":
+        with open(path, "rb") as f:
+            return pickle.load(f)

@@ -1,12 +1,15 @@
 import click
+import pandas as pd
+
+from .algo.content_based.knn import KNN
 
 
 @click.group()
-def cli():
+def main():
     pass
 
 
-@cli.command(
+@main.command(
     help="Builds a recommendation model using the given algorithm on the given dataset"
 )
 @click.argument(
@@ -28,10 +31,13 @@ def build(algorithm, dataset, model_path):
     click.echo("Dataset: %s" % dataset)
     click.echo("Model path : %s" % model_path)
 
+    df = pd.read_csv(dataset)
 
-def preprocess():
-    click.echo("Preprocessing data...")
+    if algorithm == "content-knn":
+        model = KNN(df)
+        model.serialize(model_path)
+        print("Finished building content based KNN model.")
 
 
 if __name__ == "__main__":
-    cli()
+    main()

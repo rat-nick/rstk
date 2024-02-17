@@ -1,7 +1,10 @@
-from src.algo.content_based.knn import KNN
-import pytest
-import pandas as pd
+import os
+
 import numpy as np
+import pandas as pd
+import pytest
+
+from src.algo.content_based.knn import KNN
 
 
 @pytest.fixture
@@ -20,7 +23,6 @@ def feature_data():
 
 
 def test_knn_constructors(feature_data):
-
     knn = KNN(data=feature_data, id_column="id")
 
     assert knn.features.shape == (12, 5)
@@ -58,3 +60,15 @@ def user_profile():
 def test_get_similar_items(knn, user_profile):
     recs = knn.get_similar_items(user_profile, 3)
     assert recs == [9, 6, 4]
+
+
+def test_model_searialization(knn):
+    knn.serialize("example.pkl")
+
+    assert os.path.exists("example.pkl")
+
+    deserialized_knn = KNN.deserialize(cls=KNN, path="example.pkl")
+
+    assert type(deserialized_knn) == KNN
+
+    os.remove("example.pkl")

@@ -1,10 +1,12 @@
 from setuptools import find_packages, setup
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(
     name="rstk",
-    version="0.1",
-    packages=find_packages(),
-    include_package_data=True,
+    version="0.1.1",
+    package_dir={"rstk": "src"},
     install_requires=[
         "click",
         "pandas",
@@ -13,6 +15,11 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        rstk=src.cli:cli
+        rstk=rstk.cli:main
     """,
+    author="Nikola Ratinac",
+    author_email="nikola.ratinac@gmail.com",
+    description="Lightweight recommender system toolkit",
+    long_description=long_description,
+    url="https://github.com/rat-nick/rstk",
 )

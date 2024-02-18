@@ -52,20 +52,22 @@ def knn(feature_data):
     return KNN(data=feature_data, id_column="id")
 
 
-@pytest.fixture
-def correct_user_profile():
-    return np.array([1, 1, 0, 1, 0])
-
-
-def test_get_similar_items(knn, correct_user_profile):
-    recs = knn.get_similar_items(correct_user_profile, 3)
+def test_get_recommendations(knn):
+    user_profile = np.array([1, 1, 0, 1, 0])
+    recs = knn.get_recommendations(user_profile, 3)
     assert recs == [9, 6, 4]
 
 
-def test_get_similar_items_with_list_user_profile(knn):
+def test_get_recommendations_with_list_user_profile(knn):
     user_profile = [1, 1, 0, 1, 0]
-    recs = knn.get_similar_items(user_profile, 3)
+    recs = knn.get_recommendations(user_profile, 3)
     assert recs == [9, 6, 4]
+
+
+def test_get_similar_items_with_incorrect_user_profile(knn):
+    user_profile = ["h", "e", "l", "l", "o"]
+    with pytest.raises(ValueError):
+        knn.get_recommendations(user_profile, 3)
 
 
 def test_model_searialization(knn):

@@ -96,7 +96,7 @@ class KNN:
                 self.raw2innerID[id] = innerID
                 self.inner2rawID[innerID] = id
 
-    def get_similar_items(
+    def get_recommendations(
         self,
         user_profile: np.array,
         k: int = 10,

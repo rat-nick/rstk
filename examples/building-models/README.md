@@ -16,7 +16,7 @@ rstk build content-knn dataset.csv custom/path.pkl
 
 You can also run the script `build-model.sh`
 
-After executing one of the following commands, create a .py file where you will deserialize said model using the static method `deserialize`.
+After executing one of the following commands, create a .py file where you will deserialize said model using the static method `deserialize`, as shown in the `use_model.py`.
 
 
 

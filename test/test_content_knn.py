@@ -74,7 +74,7 @@ def test_model_searialization(knn):
 
     assert os.path.exists(path)
 
-    deserialized_knn = KNN.deserialize(cls=KNN, path=path)
+    deserialized_knn = KNN.deserialize(path=path)
 
     assert type(deserialized_knn) == KNN
 
@@ -87,7 +87,7 @@ def test_model_serialization_with_nested_path(knn):
 
     assert os.path.exists(path)
 
-    deserialized_knn = KNN.deserialize(cls=KNN, path=path)
+    deserialized_knn = KNN.deserialize(path=path)
 
     assert type(deserialized_knn) == KNN
 

@@ -46,6 +46,19 @@ class KNN:
         self.init_features(feature_columns, feature_prefix)
 
     def init_features(self, feature_columns, feature_prefix):
+        """
+        Initializes the features based on the provided feature columns and prefix.
+
+        Parameters:
+            feature_columns (list): List of feature columns to initialize the features.
+            feature_prefix (str): Prefix to filter the feature columns.
+
+        Raises:
+            ValueError: If no features are selected.
+
+        Returns:
+            None
+        """
         if feature_columns is None:
             self.features = self.data.filter(regex=f"^{feature_prefix}*")
         else:
@@ -89,24 +102,14 @@ class KNN:
         k: int = 10,
     ) -> List[any]:
         """
-        Returns the k most similar items to the user profile based on the cosine similarity of the user profile and the item features.
+        Get the k most similar items to the given user profile using cosine similarity.
 
-        Parameters
-        ----------
-        user_profile : np.array
-            The user profile represented as a numpy array of dimensions (n_features,)
-        k : int, optional
-            The number of most similar items to be returned, by default 10
+        Args:
+            user_profile (np.array): The user profile for which to find similar items.
+            k (int): The number of similar items to return. Defaults to 10.
 
-        Returns
-        -------
-        List[any]
-            A list of the raw IDs of the k most similar items to the user profile
-
-        Raises
-        ------
-        ValueError
-            If the user profile is not provided
+        Returns:
+            List[any]: A list of the k most similar items to the user profile.
         """
         if user_profile is None:
             raise ValueError("Must provide the user profile")
@@ -124,6 +127,16 @@ class KNN:
         return [self.inner2rawID[i] for i in indicies][:k]
 
     def serialize(self, path: str):
+        """
+        Serialize the model to a file.
+
+        Args:
+            path (str): The file path to serialize the object to.
+
+        Returns:
+            None
+        """
+
         # check if its the current directory
         if "/" not in path:
             path = "./" + path
@@ -134,6 +147,15 @@ class KNN:
             pickle.dump(self, f)
 
     @staticmethod
-    def deserialize(cls, path: str) -> "KNN":
+    def deserialize(path: str) -> "KNN":
+        """
+        Deserialize a KNN model from the given path using pickle.
+
+        Args:
+            path (str): The path to the serialized KNN model.
+
+        Returns:
+            KNN: The deserialized KNN model.
+        """
         with open(path, "rb") as f:
             return pickle.load(f)

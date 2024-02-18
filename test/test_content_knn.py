@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.algo.content_based.knn import KNN
+from ..src.algo.content_based.knn import KNN
 
 
 @pytest.fixture
@@ -53,11 +53,17 @@ def knn(feature_data):
 
 
 @pytest.fixture
-def user_profile():
+def correct_user_profile():
     return np.array([1, 1, 0, 1, 0])
 
 
-def test_get_similar_items(knn, user_profile):
+def test_get_similar_items(knn, correct_user_profile):
+    recs = knn.get_similar_items(correct_user_profile, 3)
+    assert recs == [9, 6, 4]
+
+
+def test_get_similar_items_with_list_user_profile(knn):
+    user_profile = [1, 1, 0, 1, 0]
     recs = knn.get_similar_items(user_profile, 3)
     assert recs == [9, 6, 4]
 

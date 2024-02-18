@@ -1,0 +1,6 @@
+id,ftr1,ftr2,nonftr3
+1,1,1,foo
+2,1,0,bar
+3,2,1,bazz
+4,3,0,foo
+5,1,1,boo

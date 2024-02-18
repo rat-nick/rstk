@@ -1,3 +1,4 @@
+import os
 import pickle
 from typing import List
 
@@ -123,6 +124,12 @@ class KNN:
         return [self.inner2rawID[i] for i in indicies][:k]
 
     def serialize(self, path: str):
+        # check if its the current directory
+        if "/" not in path:
+            path = "./" + path
+        # check if the path exists and if not create it
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(self, f)
 

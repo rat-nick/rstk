@@ -69,12 +69,27 @@ def test_get_similar_items_with_list_user_profile(knn):
 
 
 def test_model_searialization(knn):
-    knn.serialize("example.pkl")
+    path = "./example.pkl"
+    knn.serialize(path)
 
-    assert os.path.exists("example.pkl")
+    assert os.path.exists(path)
 
-    deserialized_knn = KNN.deserialize(cls=KNN, path="example.pkl")
+    deserialized_knn = KNN.deserialize(cls=KNN, path=path)
 
     assert type(deserialized_knn) == KNN
 
-    os.remove("example.pkl")
+    os.remove(path)
+
+
+def test_model_serialization_with_nested_path(knn):
+    path = "nested/path.pkl"
+    knn.serialize(path)
+
+    assert os.path.exists(path)
+
+    deserialized_knn = KNN.deserialize(cls=KNN, path=path)
+
+    assert type(deserialized_knn) == KNN
+
+    os.remove(path)
+    os.removedirs(os.path.dirname(path))

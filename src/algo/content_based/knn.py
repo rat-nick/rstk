@@ -107,9 +107,11 @@ class KNN:
         ValueError
             If the user profile is not provided
         """
-
         if user_profile is None:
             raise ValueError("Must provide the user profile")
+
+        if type(user_profile) is not np.array:
+            user_profile = np.array(user_profile)
 
         # calculate the similarity of all items to the user profile
         similarity = cosine_similarity(user_profile.reshape(1, -1), self.features)

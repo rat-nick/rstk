@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="rstk",
-    version="0.1.1",
+    version="0.1.2",
     package_dir={"rstk": "src"},
     install_requires=[
         "click",
@@ -21,5 +21,7 @@ setup(
     author_email="nikola.ratinac@gmail.com",
     description="Lightweight recommender system toolkit",
     long_description=long_description,
+    long_description_content_type="text/markdown",
+    license="3-clause BSD",
     url="https://github.com/rat-nick/rstk",
 )

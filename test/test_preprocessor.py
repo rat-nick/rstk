@@ -1,5 +1,6 @@
-from src.preprocessor import Preprocessor
 import pandas as pd
+
+from src.preprocessor import Preprocessor
 
 
 def test_preprocessor_with_path():
@@ -76,3 +77,44 @@ def test_multilabel_binarize(item_preprocessor):
     assert "ftr_T3" in data.columns
     assert "ftr_T4" in data.columns
     assert "ftr_T5" in data.columns
+
+
+def test_select_features_with_column_names(item_preprocessor):
+    data = item_preprocessor.select_features(columns=["category", "price"])
+    assert "category" in data.columns
+    assert "price" in data.columns
+
+
+def test_select_features_with_column_ranges(item_preprocessor):
+    data = item_preprocessor.select_features(columns=":1,3:")
+    assert "name" in data.columns
+    assert "price" in data.columns
+
+
+def test_select_features_with_regex(item_preprocessor):
+    data = item_preprocessor.select_features(regex=".*e.*")
+    assert "name" in data.columns
+    assert "category" in data.columns
+    assert "price" in data.columns
+
+
+def test_simple_preprocessing_chain(item_preprocessor):
+    # fmt: off
+    data = (
+        item_preprocessor
+        .handle_missing_values(strategy="mean")
+        .multilabel_binarize(["tags"])
+        .normalize(["price"], methods=["z-score"])
+        .onehot_encode(columns=["category"])
+        .select_features(regex="^ftr.*", columns=["price"])
+    )
+    # fmt: on
+    assert "price" in data.columns
+    assert "ftr_T1" in data.columns
+    assert "ftr_T2" in data.columns
+    assert "ftr_T3" in data.columns
+    assert "ftr_T4" in data.columns
+    assert "ftr_T5" in data.columns
+    assert "ftr_X" in data.columns
+    assert "ftr_Y" in data.columns
+    assert "ftr_Z" in data.columns

@@ -14,7 +14,7 @@ def test_preprocessor_with_df(user_df):
 
 
 def test_onehot_encode(user_preprocessor):
-    user_preprocessor.onehot_encode(categorical_columns=["gender"])
+    user_preprocessor.onehot_encode(columns=["gender"])
 
     # grab a reference to the data for easy access
     data = user_preprocessor.data

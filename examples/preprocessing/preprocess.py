@@ -9,4 +9,4 @@ data = (
     .select_features(regex=".*")
 )
 
-data.to_csv("prepreocessed.csv", index=False)
+data.to_csv("preprocessed.csv", index=False)

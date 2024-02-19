@@ -1,0 +1,8 @@
+price,name,releaseYear,ftr_Android,ftr_Nintendo Switch,ftr_PC,ftr_PlayStation 4,ftr_PlayStation 5,ftr_Xbox One,ftr_Xbox Series X/S,ftr_iOS,ftr_Action RPG,ftr_Action-Adventure,ftr_Adventure,ftr_RPG,ftr_Sandbox,ftr_Survival
+-0.41909906717033435,Super Mario Odyssey,0.6666666666666666,0,1,0,0,0,0,0,0,0,0,1,0,0,0
+0.167639626868134,The Witcher 3: Wild Hunt,0.4444444444444444,0,0,1,1,0,1,0,0,0,0,0,1,0,0
+-1.0058377612088025,Minecraft,0.0,1,1,1,1,0,1,0,1,0,0,0,0,1,1
+-0.41909906717033435,Dark Souls III,0.5555555555555556,0,0,1,1,0,1,0,0,1,0,0,0,0,0
+1.3411170149450704,Assassin's Creed Valhalla,1.0,0,0,1,1,1,1,1,0,0,1,0,1,0,0
+1.3411170149450704,Final Fantasy VII Remake,1.0,0,0,0,1,0,0,0,0,1,0,0,0,0,0
+-1.0058377612088025,Terraria,0.0,1,1,1,1,0,1,0,1,0,0,0,0,1,1

@@ -49,12 +49,12 @@ class Preprocessor:
         else:
             self.fillna(strategy=strategy)
 
-    def fillna(self, strategy: Literal["mean", "median", "mode"] = "drop"):
+    def _fillna(self, strategy: Literal["mean", "median", "mode"] = "drop"):
         for col in self.data.columns:
-            fill_val = self.determine_fill_value(col, strategy)
+            fill_val = self._determine_fill_value(col, strategy)
             self.data[col] = self.data[col].fillna(fill_val)
 
-    def determine_fill_value(self, col, strategy):
+    def _determine_fill_value(self, col, strategy):
         dtype = self.data[col].dtype
 
         fill_val = 0
@@ -85,7 +85,7 @@ class Preprocessor:
         for col, meth in zip(normalization_columns, methods):
             self.normalize_column(col, meth)
 
-    def normalize_column(self, col, meth):
+    def _normalize_column(self, col, meth):
         if meth == "z-score":
             # perform z-score normalization
             self.data[col] = z_score(

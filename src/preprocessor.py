@@ -1,4 +1,5 @@
 from typing import List, Literal
+
 import pandas as pd
 
 z_score = lambda x, mean, std: (x - mean) / std
@@ -14,8 +15,9 @@ class Preprocessor:
         else:
             raise ValueError("Must provide either path to data or dataframe object")
 
-    def load(self, path: str, delimiter: str = ",") -> pd.DataFrame:
-        return pd.read_csv(path, delimiter=delimiter, header=0, engine="python")
+    def load(self, path: str, delimiter: str = ",") -> "Preprocessor":
+        self.data = pd.read_csv(path, delimiter=delimiter, header=0, engine="python")
+        return self
 
     def preprocess(
         self,
@@ -43,11 +45,13 @@ class Preprocessor:
 
     def handle_missing_values(
         self, strategy: Literal["drop", "mean", "median", "mode"] = "drop"
-    ):
+    ) -> "Preprocessor":
         if strategy == "drop":
             self.data.dropna(inplace=True)
         else:
-            self.fillna(strategy=strategy)
+            self._fillna(strategy=strategy)
+
+        return self
 
     def _fillna(self, strategy: Literal["mean", "median", "mode"] = "drop"):
         for col in self.data.columns:
@@ -74,7 +78,7 @@ class Preprocessor:
         self,
         normalization_columns: List[str] = [],
         methods: List[Literal["linear", "z-score"]] = None,
-    ):
+    ) -> "Preprocessor":
         """Normalizes the given columns of the DataFrame using the specified method."""
 
         if len(normalization_columns) > 0 and methods == None:
@@ -83,7 +87,9 @@ class Preprocessor:
             raise ValueError("Method and column lists must be of equal length.")
 
         for col, meth in zip(normalization_columns, methods):
-            self.normalize_column(col, meth)
+            self._normalize_column(col, meth)
+
+        return self
 
     def _normalize_column(self, col, meth):
         if meth == "z-score":
@@ -98,15 +104,58 @@ class Preprocessor:
                 self.data[col], self.data[col].min(), self.data[col].max()
             )
 
-    def onehot_encode(self, categorical_columns: List[str] = []):
-        self.data = pd.get_dummies(self.data, columns=categorical_columns, prefix="ftr")
+    def onehot_encode(self, columns: List[str] = []) -> "Preprocessor":
+        self.data = pd.get_dummies(self.data, columns=columns, prefix="ftr")
+        return self
 
-    def multilabel_binarize(self, multilabel_columns: List[str] = [], sep="|"):
+    def multilabel_binarize(
+        self, multilabel_columns: List[str] = [], sep="|"
+    ) -> "Preprocessor":
         for col in multilabel_columns:
             binarized_labels = self.data[col].str.get_dummies(sep).add_prefix("ftr_")
             self.data.drop(columns=col, inplace=True)
             self.data = pd.concat([self.data, binarized_labels], axis=1)
-        print(self.data)
+        return self
 
-    def select_features(self, columns: List[str] = []) -> pd.DataFrame:
-        pass
+    def select_features(
+        self,
+        columns: List[str] | str = None,
+        regex: str = None,
+    ) -> pd.DataFrame:
+        """
+        Selects and returns specific columns from the data based on the provided column names or regex pattern.
+
+        Args:
+            columns (str or List[str]): The column names to select from the data.
+            regex (str): A regex pattern to select columns based on their names.
+
+        Returns:
+            pd.DataFrame: The selected columns as a pandas DataFrame.
+
+        Raises:
+            ValueError: If the columns input is not a valid type.
+        """
+
+        df = pd.DataFrame()
+
+        if regex is not None:
+            df = self.data.filter(regex=regex, axis=1)
+
+        if type(columns) == str:
+            ranges = columns.split(",")
+            for range in ranges:
+                start, end = range.split(":")
+                if start == "":
+                    start = 0
+                if end == "":
+                    end = len(self.data.columns)
+                start, end = int(start), int(end)
+                df = pd.concat([df, self.data.iloc[:, start:end]], axis=1, sort=False)
+
+        if type(columns) == list and all(type(x) == str for x in columns):
+            df = pd.concat([df, self.data.loc[:, columns]])
+
+        if len(df.columns) > 0:
+            return df
+
+        raise ValueError("Columns must be either a string or a list of strings")

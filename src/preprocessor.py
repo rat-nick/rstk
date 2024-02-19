@@ -9,11 +9,9 @@ linear = lambda x, min, max: (x - min) / (max - min)
 class Preprocessor:
     def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):
         if path != None:
-            self.data = self.load(path, delimiter)
+            self.load(path, delimiter)
         elif df is not None:
             self.data = df
-        else:
-            raise ValueError("Must provide either path to data or dataframe object")
 
     def load(self, path: str, delimiter: str = ",") -> "Preprocessor":
         self.data = pd.read_csv(path, delimiter=delimiter, header=0, engine="python")
@@ -129,7 +127,7 @@ class Preprocessor:
                 df = pd.concat([df, self.data.iloc[:, start:end]], axis=1, sort=False)
 
         if type(columns) == list and all(type(x) == str for x in columns):
-            df = pd.concat([df, self.data.loc[:, columns]])
+            df = pd.concat([df, self.data.loc[:, columns]], axis=1, sort=False)
 
         if len(df.columns) > 0:
             return df

@@ -19,30 +19,6 @@ class Preprocessor:
         self.data = pd.read_csv(path, delimiter=delimiter, header=0, engine="python")
         return self
 
-    def preprocess(
-        self,
-        missing_value_strategy: Literal["drop", "mean", "median", "mode"] = "drop",
-        normalization_columns: List[str] = None,
-        normalization_methods: List[Literal["linear", "z-score"]] = None,
-        categorical_columns: List[str] = None,
-        multilabel_columns: List[str] = None,
-        feature_columns: List[str] = None,
-    ) -> pd.DataFrame:
-        self.handle_missing_values(missing_value_strategy)
-
-        if normalization_columns != None:
-            self.normalize(normalization_columns, normalization_methods)
-
-        if categorical_columns != None:
-            self.onehot_encode(categorical_columns)
-
-        if multilabel_columns != None:
-            self.multilabel_binarize(multilabel_columns)
-        # get all the columns that were generated via feature engineering
-        res_df = self.data.filter(regex="^ftr_*")
-
-        return res_df.join(self.data[[feature_columns]])
-
     def handle_missing_values(
         self, strategy: Literal["drop", "mean", "median", "mode"] = "drop"
     ) -> "Preprocessor":

@@ -30,3 +30,5 @@ def serve(model, port: int):
         return jsonify(model.get_recommendations(profile, ratings, preference, k))
 
     app.run(port=port)
+
+    return app

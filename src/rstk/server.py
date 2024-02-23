@@ -4,7 +4,17 @@ from .recommender import Recommender
 
 
 # serve the given model on the given port with flask
-def serve(model, port: int):
+def serve(model: Recommender, port: int):
+    """
+    Starts the Flask app and exposes the recommend endpoint.
+
+    Args:
+        model (Recommender): The recommender model used to generate recommendations.
+        port (int): The port number on which the Flask app will run.
+
+    Returns:
+        Flask: The Flask app instance.
+    """
 
     app = Flask(__name__)
 

@@ -6,16 +6,15 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
+from ...recommender import Recommender
 
-class KNN:
+
+class KNN(Recommender):
     """Content based item recommendation system using the k-nearest neighbors algorithm"""
 
     def __init__(
         self,
-        data: pd.DataFrame = None,
-        id_column: str = None,
-        feature_columns: List[str] = None,
-        feature_prefix: str = "ftr",
+        features: pd.DataFrame,
     ):
         """
         Initialize the KNN class.
@@ -36,65 +35,28 @@ class KNN:
         ValueError
             If no features are specified and no columns with the specified prefix are found.
         """
-        self.data = data
 
-        if id_column is not None:
-            self.data = self.data.set_index(id_column)
-
+        self.features = features
+        self.features.index = self.features.index.astype(str)
         self.translate_ids()
-
-        self.init_features(feature_columns, feature_prefix)
-
-    def init_features(self, feature_columns, feature_prefix):
-        """
-        Initializes the features based on the provided feature columns and prefix.
-
-        Parameters:
-            feature_columns (list): List of feature columns to initialize the features.
-            feature_prefix (str): Prefix to filter the feature columns.
-
-        Raises:
-            ValueError: If no features are selected.
-
-        Returns:
-            None
-        """
-        if feature_columns is None:
-            self.features = self.data.filter(regex=f"^{feature_prefix}*")
-        else:
-            self.features = self.data[feature_columns]
-
-        if len(self.features.columns) == 0:
-            raise ValueError("No features selected")
-
-        # translate the features to a numpy array
+        # self.features.reset_index(inplace=True)
         self.features = self.features.to_numpy()
 
     def translate_ids(self):
         """
-        Translates the raw item IDs into unique inner IDs and vice versa.
+        Generate a dictionary that maps raw item IDs to unique integers and vice versa.
 
-        The inner IDs are used to represent the items in the recommendation model, while the raw IDs
-        are used to retrieve the original data from the database.
+        Args:
+            features (pd.DataFrame): The input features as a DataFrame.
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
+        Returns:
+            None
         """
+
         # dict where the key is the raw item id and the value is a unique integer for each item
-        self.raw2innerID = {}
+        self.inner2rawID = {inner: raw for inner, raw in enumerate(self.features.index)}
         # dict where the key is the unique integer for each item and the value is the raw item id
-        self.inner2rawID = {}
-        for id, _ in self.data.iterrows():
-            if id not in self.raw2innerID.keys():
-                innerID = len(self.raw2innerID)
-                self.raw2innerID[id] = innerID
-                self.inner2rawID[innerID] = id
+        self.raw2innerID = {raw: inner for inner, raw in enumerate(self.features.index)}
 
     def get_most_similar(self, vector: np.array):
         """

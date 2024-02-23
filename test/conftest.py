@@ -1,6 +1,7 @@
-import pytest
 import pandas as pd
-from src.preprocessor import Preprocessor
+import pytest
+
+from ..src.rstk.preprocess import Preprocessor
 
 
 @pytest.fixture

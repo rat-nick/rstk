@@ -1,10 +1,10 @@
 import pandas as pd
 
-from src.preprocessor import Preprocessor
+from ..src.rstk.preprocess import Preprocessor
 
 
 def test_preprocessor_with_path():
-    instance = Preprocessor(path="data/ml-1m/users.dat", delimiter="::")
+    instance = Preprocessor(path="data/dataset.csv", delimiter="|")
     assert type(instance.data) == pd.DataFrame
 
 

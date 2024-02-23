@@ -1,4 +1,5 @@
 chmod +x env/bin/activate
 . env/bin/activate
-python setup.py sdist bdist_wheel
+pip uninstall --yes rstk
+python -m build --sdist --wheel
 pip install .

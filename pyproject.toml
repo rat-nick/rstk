@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rstk"
 version = "0.2.0"
-dependencies = ["click", "pandas", "numpy", "scikit-learn"]
+dependencies = ["click", "pandas", "numpy", "scikit-learn", "flask"]
 authors = [{ name = "Nikola Ratinac", email = "nikola.ratinac@gmail.com" }]
 description = "Lightweight recommender system toolkit"
 readme = { file = "README.md", content-type = "text/markdown" }

@@ -9,6 +9,7 @@ from .server import serve
 
 
 @click.group()
+@click.version_option(version="0.2.0")
 def main():
     pass
 

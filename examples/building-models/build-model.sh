@@ -1,1 +1,1 @@
-rstk build content-knn dataset.csv
+rstk build content-knn data/dataset.csv --delimiter "|" --model-path models/knn.pkl --feature-range 5: --id-column "movie id"

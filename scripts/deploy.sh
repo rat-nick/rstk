@@ -1,0 +1,1 @@
+rstk run models/knn.pkl &

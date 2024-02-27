@@ -194,6 +194,7 @@ class Preprocessor:
         columns: List[str] | str = None,
         regex: str = None,
     ) -> pd.DataFrame:
+        # TODO: add support for ranges and single columns
         """
         Selects the given features using a column range and regex.
 

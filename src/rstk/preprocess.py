@@ -7,6 +7,11 @@ linear = lambda x, min, max: (x - min) / (max - min)
 
 
 class Preprocessor:
+    """
+    The basic class used for data preprocessing. It can be used for loading the dataset or can be used with an existing dataframe.
+    Contains a variety of standard methods for data preprocessing that should be called with method chaining.
+    """
+
     def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):
         if path != None:
             self.load(path, delimiter)

@@ -14,12 +14,40 @@ class Preprocessor:
             self.data = df
 
     def load(self, path: str, delimiter: str = ",") -> "Preprocessor":
+        """
+        Loads the dataset from the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path to the dataframe
+        delimiter : str, optional
+            string used for splitting, by default ","
+
+        Returns
+        -------
+        Preprocessor
+            The preprocessor instance
+        """
         self.data = pd.read_csv(path, delimiter=delimiter, header=0, engine="python")
         return self
 
     def handle_missing_values(
         self, strategy: Literal["drop", "mean", "median", "mode"] = "drop"
     ) -> "Preprocessor":
+        """
+        Performs standard handling of missing values with a variety of strategies.
+
+        Parameters
+        ----------
+        strategy : Literal[&quot;drop&quot;, &quot;mean&quot;, &quot;median&quot;, &quot;mode&quot;], optional
+            The strategy to be used when handling missing values, by default "drop"
+
+        Returns
+        -------
+        Preprocessor
+            The preprocessor instance
+        """
         if strategy == "drop":
             self.data.dropna(inplace=True)
         else:
@@ -28,6 +56,14 @@ class Preprocessor:
         return self
 
     def _fillna(self, strategy: Literal["mean", "median", "mode"] = "drop"):
+        """
+        Function used for filling missing values using the given strategy
+
+        Parameters
+        ----------
+        strategy : Literal[&quot;mean&quot;, &quot;median&quot;, &quot;mode&quot;], optional
+            The strategy to be used, by default "drop"
+        """
         for col in self.data.columns:
             fill_val = self._determine_fill_value(col, strategy)
             self.data[col] = self.data[col].fillna(fill_val)
@@ -53,7 +89,26 @@ class Preprocessor:
         normalization_columns: List[str] = [],
         methods: List[Literal["linear", "z-score"]] = None,
     ) -> "Preprocessor":
-        """Normalizes the given columns of the DataFrame using the specified method."""
+        """
+        Performs column-wise normalization of the data using the specified methods.
+
+        Parameters
+        ----------
+        normalization_columns : List[str], optional
+            A list of columns to be normalized, by default []
+        methods : List[Literal[&quot;linear&quot;, &quot;z, optional
+            A list od normalization methods to be performed on the given columns, respectively, by default None
+
+        Returns
+        -------
+        Preprocessor
+            The preprocessor instance
+
+        Raises
+        ------
+        ValueError
+            If the lenght of the methods arguments doesn't match the length of the normalization_columns
+        """
 
         if len(normalization_columns) > 0 and methods == None:
             methods = len(normalization_columns) * ["linear"]
@@ -66,6 +121,16 @@ class Preprocessor:
         return self
 
     def _normalize_column(self, col, meth):
+        """
+        Performs the given normalization method on the given column
+
+        Parameters
+        ----------
+        col : _type_
+            The column identifier
+        meth : _type_
+            The method to be performed
+        """
         if meth == "z-score":
             # perform z-score normalization
             self.data[col] = z_score(
@@ -79,12 +144,40 @@ class Preprocessor:
             )
 
     def onehot_encode(self, columns: List[str] = []) -> "Preprocessor":
+        """
+        Performs one-hot encoding on the given columns. The resulting colums have the prefix &quot;ftr_&quot;
+
+        Parameters
+        ----------
+        columns : List[str], optional
+            The list of column identifiers, by default []
+
+        Returns
+        -------
+        Preprocessor
+            The preprocessor instance
+        """
         self.data = pd.get_dummies(self.data, columns=columns, prefix="ftr")
         return self
 
     def multilabel_binarize(
         self, multilabel_columns: List[str] = [], sep="|"
     ) -> "Preprocessor":
+        """
+        Performs multilabel binarization on the given columns. The resulting colums have the prefix &quot;ftr_&quot;
+
+        Parameters
+        ----------
+        multilabel_columns : List[str], optional
+            The list of column identifiers, by default []
+        sep : str, optional
+            The separator to be used when splitting labels, by default "|"
+
+        Returns
+        -------
+        Preprocessor
+            The preprocessor instance
+        """
         for col in multilabel_columns:
             binarized_labels = self.data[col].str.get_dummies(sep).add_prefix("ftr_")
             self.data.drop(columns=col, inplace=True)
@@ -97,17 +190,26 @@ class Preprocessor:
         regex: str = None,
     ) -> pd.DataFrame:
         """
-        Selects and returns specific columns from the data based on the provided column names or regex pattern.
+        Selects the given features and discards the rest.
+        Should be used as the last method of the preprocessing method chain.
+        Both the columns and the regex parameters will be used to select features.
 
-        Args:
-            columns (str or List[str]): The column names to select from the data.
-            regex (str): A regex pattern to select columns based on their names.
+        Parameters
+        ----------
+        columns : List[str] | str, optional
+            List of column identifiers, by default None
+        regex : str, optional
+            The regex to be used when selecting columns, by default None
 
-        Returns:
-            pd.DataFrame: The selected columns as a pandas DataFrame.
+        Returns
+        -------
+        pd.DataFrame
+            The resulting dataframe
 
-        Raises:
-            ValueError: If the columns input is not a valid type.
+        Raises
+        ------
+        ValueError
+            If none of the arguments is provided
         """
 
         df = pd.DataFrame()

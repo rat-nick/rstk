@@ -45,7 +45,7 @@ class Preprocessor:
 
         Parameters
         ----------
-        strategy : Literal[&quot;drop&quot;, &quot;mean&quot;, &quot;median&quot;, &quot;mode&quot;], optional
+        strategy : Literal['drop, 'mean', 'median', 'mode'], optional
             The strategy to be used when handling missing values, by default "drop"
 
         Returns
@@ -66,7 +66,7 @@ class Preprocessor:
 
         Parameters
         ----------
-        strategy : Literal[&quot;mean&quot;, &quot;median&quot;, &quot;mode&quot;], optional
+        strategy : Literal['mean', 'median', 'mode'], optional
             The strategy to be used, by default "drop"
         """
         for col in self.data.columns:
@@ -101,7 +101,7 @@ class Preprocessor:
         ----------
         normalization_columns : List[str], optional
             A list of columns to be normalized, by default []
-        methods : List[Literal[&quot;linear&quot;, &quot;z, optional
+        methods : List[Literal['linear', 'z, optional
             A list od normalization methods to be performed on the given columns, respectively, by default None
 
         Returns
@@ -150,7 +150,7 @@ class Preprocessor:
 
     def onehot_encode(self, columns: List[str] = []) -> "Preprocessor":
         """
-        Performs one-hot encoding on the given columns. The resulting colums have the prefix &quot;ftr_&quot;
+        Performs one-hot encoding on the given columns. The resulting colums have the prefix `ftr_`
 
         Parameters
         ----------
@@ -169,7 +169,7 @@ class Preprocessor:
         self, multilabel_columns: List[str] = [], sep="|"
     ) -> "Preprocessor":
         """
-        Performs multilabel binarization on the given columns. The resulting colums have the prefix &quot;ftr_&quot;
+        Performs multilabel binarization on the given columns. The resulting colums have the prefix `ftr_`
 
         Parameters
         ----------
@@ -195,26 +195,17 @@ class Preprocessor:
         regex: str = None,
     ) -> pd.DataFrame:
         """
-        Selects the given features and discards the rest.
-        Should be used as the last method of the preprocessing method chain.
-        Both the columns and the regex parameters will be used to select features.
+        Selects the given features using a column range and regex.
 
-        Parameters
-        ----------
-        columns : List[str] | str, optional
-            List of column identifiers, by default None
-        regex : str, optional
-            The regex to be used when selecting columns, by default None
+        Args:
+            columns (List[str] | str, optional): List of column indentifiers or ranges. Defaults to None.
+            regex (str, optional): The regex to be used for selecting columns. Defaults to None.
 
-        Returns
-        -------
-        pd.DataFrame
-            The resulting dataframe
+        Raises:
+            ValueError: If no parameters are provided
 
-        Raises
-        ------
-        ValueError
-            If none of the arguments is provided
+        Returns:
+            pd.DataFrame: The resulting dataframe
         """
 
         df = pd.DataFrame()

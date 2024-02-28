@@ -12,7 +12,7 @@ class Preprocessor:
     Contains a variety of standard methods for data preprocessing that should be called with method chaining.
 
     Example:
-    ```
+    .. code-block:: python
     preprocessor = Preprocessor(path="dataset.csv")
     data = (
         preprocessor
@@ -21,7 +21,7 @@ class Preprocessor:
         .normalize(["price", "releaseYear"], methods=["z-score", "linear"])
         .select_features(regex=".*")
     )
-    ```
+
     """
 
     def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):

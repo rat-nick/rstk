@@ -10,6 +10,18 @@ class Preprocessor:
     """
     The basic class used for data preprocessing. It can be used for loading the dataset or can be used with an existing dataframe.
     Contains a variety of standard methods for data preprocessing that should be called with method chaining.
+
+    Example:
+    ```
+    preprocessor = Preprocessor(path="dataset.csv")
+    data = (
+        preprocessor
+        .handle_missing_values()
+        .multilabel_binarize(["release", "genres"])
+        .normalize(["price", "releaseYear"], methods=["z-score", "linear"])
+        .select_features(regex=".*")
+    )
+    ```
     """
 
     def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):

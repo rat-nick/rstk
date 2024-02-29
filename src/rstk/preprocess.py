@@ -11,20 +11,32 @@ class Preprocessor:
     The basic class used for data preprocessing. It can be used for loading the dataset or can be used with an existing dataframe.
     Contains a variety of standard methods for data preprocessing that should be called with method chaining.
 
-    Example:
-    .. code-block:: python
-    preprocessor = Preprocessor(path="dataset.csv")
-    data = (
-        preprocessor
-        .handle_missing_values()
-        .multilabel_binarize(["release", "genres"])
-        .normalize(["price", "releaseYear"], methods=["z-score", "linear"])
-        .select_features(regex=".*")
-    )
+    Example::
+
+        preprocessor = Preprocessor(path="dataset.csv")
+        data = (
+            preprocessor
+            .handle_missing_values()
+            .multilabel_binarize(["release", "genres"])
+            .normalize(["price", "releaseYear"], methods=["z-score", "linear"])
+            .select_features(regex="^ftr_.*")
+        )
 
     """
 
     def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):
+        """
+        Initializes the object with optional path, DataFrame, and delimiter parameters.
+
+        Parameters:
+            path (str): The path to the file to load.
+            df (pd.DataFrame): The DataFrame to initialize the object with.
+            delimiter (str): The delimiter for the file, defaults to ",".
+
+        Returns:
+            None
+        """
+
         if path != None:
             self.load(path, delimiter)
         elif df is not None:
@@ -161,6 +173,7 @@ class Preprocessor:
             )
 
     def onehot_encode(self, columns: List[str] = []) -> "Preprocessor":
+        # TODO change parameter to be a column range type
         """
         Performs one-hot encoding on the given columns. The resulting colums have the prefix `ftr_`
 
@@ -180,6 +193,7 @@ class Preprocessor:
     def multilabel_binarize(
         self, multilabel_columns: List[str] = [], sep="|"
     ) -> "Preprocessor":
+        # TODO rename parameter to `columns`
         """
         Performs multilabel binarization on the given columns. The resulting colums have the prefix `ftr_`
 
@@ -206,7 +220,7 @@ class Preprocessor:
         columns: List[str] | str = None,
         regex: str = None,
     ) -> pd.DataFrame:
-        # TODO: add support for ranges and single columns
+        # TODO add support for ranges and single columns
         """
         Selects the given features using a column range and regex.
 

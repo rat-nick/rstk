@@ -1,0 +1,39 @@
+name: Build and Deploy Documentation
+
+on:
+  workflow_run:
+    workflows: ['test']
+    types:
+      - completed
+
+jobs:
+  update-documentation:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install sphinx sphinx-rtd-theme
+
+    - name: Build documentation
+      run: |
+        sphinx-build -b html docs/ docs/_build
+        make -C docs/ html
+
+
+    - name: Stage Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "Update documentation after succesful test run"
+        git push

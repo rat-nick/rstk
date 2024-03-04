@@ -10,7 +10,18 @@ from ...recommender import Recommender
 
 
 class KNN(Recommender):
-    """Content based item recommendation system using the k-nearest neighbors algorithm"""
+    """
+    Content based item recommendation system using the k-nearest neighbors algorithm
+
+    Attributes
+    ----------
+    features : pd.DataFrame
+        The data frame containing the items and their features.
+    inner2rawID : Dict[int, str]
+        A dictonary mapping inner IDs to raw IDs.
+    raw2innerID : Dict[str, int]
+        A dictonary mapping raw IDs to inner IDs.
+    """
 
     def __init__(
         self,
@@ -35,7 +46,8 @@ class KNN(Recommender):
         ValueError
             If no features are specified and no columns with the specified prefix are found.
         """
-
+        self.inner2rawID = {}
+        self.raw2innerID = {}
         self.features = features
         self.features.index = self.features.index.astype(str)
         self.translate_ids()
@@ -46,8 +58,6 @@ class KNN(Recommender):
         """
         Generate a dictionary that maps raw item IDs to unique integers and vice versa.
 
-        Args:
-            features (pd.DataFrame): The input features as a DataFrame.
 
         Returns:
             None
@@ -58,7 +68,7 @@ class KNN(Recommender):
         # dict where the key is the unique integer for each item and the value is the raw item id
         self.raw2innerID = {raw: inner for inner, raw in enumerate(self.features.index)}
 
-    def get_most_similar(self, vector: np.array):
+    def get_most_similar(self, vector: np.array) -> List[str]:
         """
         Calculate the most similar items to the input vector in the feature space.
 
@@ -67,7 +77,7 @@ class KNN(Recommender):
             k (int): The number of most similar items to return.
 
         Returns:
-            list: A list of the raw IDs of the most similar items to the input vector.
+            List[str]: A list of the raw IDs of the most similar items to the input vector.
         """
 
         similarity = cosine_similarity(vector.reshape(1, -1), self.features)
@@ -83,6 +93,7 @@ class KNN(Recommender):
     ) -> List[any]:
         """
         Get recommendations based on the given user profile, user ratings, or user preference.
+        Only one of these should be supplied.
 
         Parameters:
             profile (np.array, optional): The user profile in feature space. Defaults to None.
@@ -125,7 +136,7 @@ class KNN(Recommender):
 
     def serialize(self, path: str):
         """
-        Serialize the model to a file.
+        Serialize the model to a file on the given path.
 
         Args:
             path (str): The file path to serialize the object to.

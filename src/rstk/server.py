@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 
-from .recommender import Recommender
+from .recommender import Engine
 
 
 # serve the given model on the given port with flask
-def serve(model: Recommender, port: int):
+def serve(model: Engine, port: int):
     """
     Starts the Flask app and exposes the recommend endpoint.
 
@@ -20,7 +20,6 @@ def serve(model: Recommender, port: int):
 
     @app.route("/", methods=["GET"])
     def recommend():
-
         preference = request.args.get("preference")
         if preference is not None:
             preference = [x for x in preference.split(",")]

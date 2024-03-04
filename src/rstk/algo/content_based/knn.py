@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-from ...recommender import Recommender
+from ...recommender import Engine
 
 
-class KNN(Recommender):
+class KNN(Engine):
     """
     Content based item recommendation system using the k-nearest neighbors algorithm
 

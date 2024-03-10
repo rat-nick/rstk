@@ -1,3 +1,5 @@
+![Coverage](coverage.svg) ![Interrogate](interrogate.svg) ![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)
+
 # Recommender systems toolkit
 
 Simple and lightweight toolkit for building and deploying recommender systems.

@@ -1,9 +1,13 @@
+"""
+This module defines the CLI functionality for the RSTK library.
+"""
+
 import pickle
 
 import click
 import pandas as pd
 
-from .algo.content_based.knn import KNN
+# from .model._knn import KNN
 from .preprocess import Preprocessor
 from .server import serve
 
@@ -11,6 +15,9 @@ from .server import serve
 @click.group()
 @click.version_option(version="0.2.0")
 def main():
+    """
+    This is a click command group associated with the `rstk` command.
+    """
     pass
 
 
@@ -71,6 +78,10 @@ def build(algorithm, dataset, model_path, feature_range, delimiter, id_column):
 @click.argument("path", type=click.Path(exists=True))
 @click.argument("port", type=int, default=11235)
 def run(path, port):
+    """
+    A command-line function that serves a model on a specified port.
+    It takes a file path and port number as arguments and loads the model from the file using pickle.
+    """
     click.echo("Serving model...")
     click.echo("Model path : %s" % path)
     click.echo("Port : %s" % port)

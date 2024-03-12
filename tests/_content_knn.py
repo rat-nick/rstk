@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ..src.rstk.algo.content_based.knn import KNN
+from ..src.rstk.model._knn import KNN
 
 
 @pytest.fixture

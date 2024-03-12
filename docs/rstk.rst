@@ -1,16 +1,16 @@
 rstk package
 ============
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   rstk.algo
-
 Submodules
 ----------
+
+rstk.adapter module
+-------------------
+
+.. automodule:: rstk.adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 rstk.cli module
 ---------------
@@ -20,18 +20,34 @@ rstk.cli module
    :undoc-members:
    :show-inheritance:
 
-rstk.preprocess module
-----------------------
+rstk.dataset module
+-------------------
 
-.. automodule:: rstk.preprocess
+.. automodule:: rstk.dataset
    :members:
    :undoc-members:
    :show-inheritance:
 
-rstk.recommender module
------------------------
+rstk.engine module
+------------------
 
-.. automodule:: rstk.recommender
+.. automodule:: rstk.engine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+rstk.model module
+-----------------
+
+.. automodule:: rstk.model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+rstk.preprocess module
+----------------------
+
+.. automodule:: rstk.preprocess
    :members:
    :undoc-members:
    :show-inheritance:

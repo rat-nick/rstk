@@ -1,6 +1,10 @@
+"""
+Module used for serving engines as HTTP endpoints.
+"""
+
 from flask import Flask, jsonify, request
 
-from .recommender import Engine
+from .engine import Engine
 
 
 # serve the given model on the given port with flask
@@ -20,6 +24,15 @@ def serve(model: Engine, port: int):
 
     @app.route("/", methods=["GET"])
     def recommend():
+        """
+        Get recommendations based on user preferences, ratings, and profile.
+
+        Parameters:
+            None
+
+        Returns:
+            A JSON response containing the recommended items.
+        """
         preference = request.args.get("preference")
         if preference is not None:
             preference = [x for x in preference.split(",")]

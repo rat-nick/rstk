@@ -1,37 +1,61 @@
 import pandas as pd
 import pytest
 
-from ..src.rstk.preprocess import Preprocessor
+from ..src.rstk.adapter import Adapter
+from ..src.rstk.dataset import ItemDataset, UtilityMatrix
+from ..src.rstk.engine import CBSEngine, CFBSEngine
+from ..src.rstk.model import SimilarityBased
 
 
 @pytest.fixture
-def user_df() -> pd.DataFrame:
-    data = {
-        "userId": [0, 1, 2, 3, 4],
-        "gender": ["M", "F", "M", "U", "F"],
-        "age": [32, 19, 23, 21, 18],
-    }
-    return pd.DataFrame(data).set_index("userId")
+def item_dataframe():
+    df = pd.read_csv("data/ml-100k/u.item", delimiter="|", index_col="movie id")
+    return df
 
 
 @pytest.fixture
-def user_preprocessor(user_df) -> Preprocessor:
-    return Preprocessor(df=user_df)
+def item_dataset(item_dataframe):
+    dataset = ItemDataset(item_dataframe)
+
+    assert hasattr(dataset, "data")
+    assert hasattr(dataset, "inner2raw")
+    assert hasattr(dataset, "raw2inner")
+
+    return dataset
 
 
 @pytest.fixture
-def item_df() -> pd.DataFrame:
-    data = {
-        "itemId": [0, 1, 2, 3, 4, 5, 6],
-        "name": ["A", "B", "C", "D", "E", "F", "G"],
-        "category": ["X", "Y", "X", "X", None, "Z", "Z"],
-        "tags": ["T1|T2", None, "T2|T3", "T5|T2", "T5|T1|T4", "T3", "T4"],
-        "price": [45, 34, 12, 80, 75, 25, None],
-    }
-
-    return pd.DataFrame(data).set_index("itemId")
+def user_dataframe():
+    df = pd.read_csv("data/ml-100k/u.user", delimiter="|", index_col="user id")
+    return df
 
 
 @pytest.fixture
-def item_preprocessor(item_df):
-    return Preprocessor(df=item_df)
+def user_dataset(user_dataframe):
+    dataset = ItemDataset(user_dataframe)
+
+    assert hasattr(dataset, "data")
+    assert hasattr(dataset, "inner2raw")
+    assert hasattr(dataset, "raw2inner")
+
+    return dataset
+
+
+@pytest.fixture
+def utility_matrix():
+    df = pd.read_csv("data/ml-100k/u.data", delimiter="\t")
+    return UtilityMatrix(df)
+
+
+@pytest.fixture
+def cbs_engine(item_dataset):
+    model = SimilarityBased()
+    engine = CBSEngine(model, item_dataset)
+    return engine
+
+
+@pytest.fixture
+def cfbs_engine(utility_matrix):
+    model = SimilarityBased()
+    engine = CFBSEngine(model, utility_matrix)
+    return engine

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from rstk.algo.content_based.knn import KNN
+from rstk.model._knn import KNN
 
 # read the data into a dataframe
 df = pd.read_csv("dataset.csv", delimiter="|").set_index("movie id")

@@ -1,4 +1,4 @@
-from rstk.algo.content_based.knn import KNN
+from rstk.model._knn import KNN
 
 # load the model
 model = KNN.deserialize("model.pkl")

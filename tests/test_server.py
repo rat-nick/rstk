@@ -5,7 +5,6 @@ from ..src.rstk.server import serve
 
 @pytest.fixture()
 def app():
-
     app = serve(None, port=0)
     app.config.update(
         {

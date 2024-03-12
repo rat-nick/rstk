@@ -129,7 +129,7 @@ class Preprocessor:
             if strategy == "median":
                 fill_val = self.data[col].median()
             if strategy == "mode":
-                fill_val == self.data[col].mode()
+                fill_val = self.data[col].mode()
 
         return fill_val
 

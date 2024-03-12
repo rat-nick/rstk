@@ -49,7 +49,7 @@ def serve(model: Engine, port: int):
 
         k = int(request.args.get("k"))
 
-        return jsonify(model.get_recommendations(profile, ratings, preference, k))
+        return jsonify(model.recommend(profile, ratings, preference, k))
 
     app.run(port=port)
 

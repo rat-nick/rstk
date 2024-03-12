@@ -7,6 +7,31 @@ from abc import ABC
 import numpy as np
 import pandas as pd
 
+from .types import FeatureVector
+
+
+class IDLookup:
+    """
+    Simple class for translating raw IDs to inner IDs and vice versa.
+    """
+
+    def __init__(self, data: pd.Series) -> None:
+        """
+        Build the lookup dicts from the given series.
+
+        Parameters:
+            data (pd.Series): The input data series.
+
+        Returns:
+            None
+        """
+        data = data.drop_duplicates(keep="first")
+        self.raw2inner = {v: k for k, v in enumerate(data)}
+        self.inner2raw = {k: v for k, v in enumerate(data)}
+
+    def __len__(self):
+        return len(self.raw2inner)
+
 
 class Dataset(ABC):
     """
@@ -24,23 +49,34 @@ class Dataset(ABC):
             None
         """
         self.data = data
-        self.inner2raw = {}
-        self.raw2inner = {}
-        self._build_translation_dicts()
+        self.lookup = IDLookup(data.index.to_series())
+
+    def __len__(self):
+        """
+        Returns the length of the data.
+        """
+        return len(self.data)  # pragma: no cover
 
     @property
     def shape(self):
         """
         Returns the shape of the data.
         """
-        return self.data.shape
+        return self.data.shape  # pragma: no cover
 
-    def _build_translation_dicts(self):
+    @property
+    def inner2raw(self):
         """
-        Builds translation dictionaries for inner and raw ids.
+        Dictionary that converts inner IDs to raw IDs.
         """
-        self.inner2raw = {k: v for k, v in enumerate(self.data.index)}
-        self.raw2inner = {v: k for k, v in enumerate(self.data.index)}
+        return self.lookup.inner2raw
+
+    @property
+    def raw2inner(self):
+        """
+        Dictionary that converts raw IDs to inner IDs.
+        """
+        return self.lookup.raw2inner
 
     def train_test_split(self) -> tuple["Trainset", "Trainset"]:
         """
@@ -50,30 +86,47 @@ class Dataset(ABC):
         return Trainset(train), Trainset(test)
 
 
-class ItemDataset(Dataset):
+class FeatureDataset(Dataset):
     """
-    Class for item data.
+    Class for feature data.
     The index should be used for item identifiers.
+    The columns represent features.
     """
 
     def __init__(
         self,
-        data: pd.DataFrame,
-        features: list | str = None,
+        data: pd.DataFrame | pd.Series,
+        features: list | str | None = None,
     ) -> None:
-        super().__init__(data)
+        if type(data) == pd.Series:
+            self.lookup = IDLookup(data)
 
-        # if no features are provided, get all numeric columns and drop columns containing NaN
-        if features is None:
-            self.features = self.data.select_dtypes(include=np.number)
-            self.features = self.features.dropna(axis=1)
-        # subset the features
-        if type(features) == list:
-            self.features = self.data[features]
+        elif type(data) == pd.DataFrame:
+            super().__init__(data)
 
-        # if its a regex
-        if type(features) == str:
-            self.features = self.data.filter(regex=features, axis=1)
+            # if no features are provided, get all numeric columns and drop columns containing NaN
+            if features is None:
+                self.features = self.data.select_dtypes(include="number")
+                self.features = self.features.dropna(axis=1)
+            # subset the features
+            if type(features) == list:
+                self.features = self.data[features]
+
+            # if its a regex
+            if type(features) == str:
+                self.features = self.data.filter(regex=features, axis=1)
+
+            if self.features is None:
+                raise ValueError("features parameter must be provided")
+
+            if type(self.features) is pd.DataFrame:
+                self.features = self.features.to_numpy()
+
+        else:
+            raise ValueError("data must be a DataFrame or Series")
+
+    def __getitem__(self, idx) -> FeatureVector:
+        return FeatureVector(self.features[idx])
 
 
 class UtilityMatrix(Dataset):
@@ -84,10 +137,10 @@ class UtilityMatrix(Dataset):
     def __init__(
         self,
         data: pd.DataFrame,
-        user_column: str,
-        item_column: str,
-        rating_column: str,
-        timestamp_column: str = None,
+        user_column: str | int,
+        item_column: str | int,
+        rating_column: str | int,
+        timestamp_column: str | None = None,
     ) -> None:
         """
         Initializes the class with the provided data and column names, and optionally renames the columns for standardization.
@@ -102,24 +155,46 @@ class UtilityMatrix(Dataset):
         Returns:
             None
         """
-
-        self.user_dataset = ItemDataset(data[user_column])
-        self.item_dataset = ItemDataset(data[item_column])
-
         self.data = data
+
+        user_data = data[user_column]
+        item_data = data[item_column]
+
+        self.user_lookup = IDLookup(user_data)
+        self.item_lookup = IDLookup(item_data)
 
         self.data.rename(
             columns={user_column: "user", item_column: "item", rating_column: "rating"},
-            axis=1,
             inplace=True,
         )
+
+        # convert the raw IDs to inner IDs
+        self.data["user"] = self.data["user"].map(self.user_lookup.raw2inner)
+        self.data["item"] = self.data["item"].map(self.item_lookup.raw2inner)
 
         if timestamp_column is not None:
             self.data.rename(
                 columns={timestamp_column: "timestamp"},
-                axis=1,
                 inplace=True,
             )
+
+        self._build_matrix()
+
+    def __getitem__(self, idx) -> FeatureVector:
+        return FeatureVector(self.features[idx])
+
+    def _build_matrix(self):
+        self.matrix = np.ndarray((len(self.user_lookup), len(self.item_lookup)))
+
+        # set the values in the matrix such that the value is the rating
+        self.matrix[self.data["user"], self.data["item"]] = self.data["rating"]
+
+    @property
+    def features(self) -> np.ndarray:
+        """
+        Returns the utility matrix as a numpy array.
+        """
+        return self.matrix
 
 
 class Trainset:

@@ -54,6 +54,9 @@ def main():
     type=str,
 )
 def build(algorithm, dataset, model_path, feature_range, delimiter, id_column):
+    """
+    CLI function that builds and serializes a recommender engine.
+    """
     click.echo("Building recommender system...")
     click.echo("Algorithm: %s" % algorithm)
     click.echo("Dataset: %s" % dataset)

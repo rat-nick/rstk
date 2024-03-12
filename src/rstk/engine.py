@@ -1,58 +1,77 @@
 """
-    Module containing the base class for recommender systems.
-    Also contains definitions for the most commonly used engines.
+Module containing the base class for recommender engines.
+Also contains definitions for the most commonly used engines.
 """
 
-from typing import List
+from abc import ABC
+from typing import List, Type
 
-from .adapter import Adapter
-from .dataset import Dataset, ItemDataset, UtilityMatrix
+from .adapter import Adapter, FeatureAdapter
+from .dataset import Dataset, FeatureDataset, UtilityMatrix
 from .model import Model, SimilarityBased
 
 
-class Engine:
+class Engine(ABC):
     """
     Base class for recommender systems.
     """
 
     def __init__(
-        self, dataset: Dataset, model: Model, adapter: Adapter = Adapter()
+        self,
+        dataset: Dataset,
+        model: Model,
+        input_adapter: Type[Adapter] | Adapter = Adapter,
+        output_adapter: Type[Adapter] | Adapter = Adapter,
+        *args,
+        **kwargs,
     ) -> None:
         """
-        Initializes the class with the provided dataset, model, and adapter.
+        Base class for all recommender engines.
+        Initializes the engine with the given dataset, model, input adapter, and output adapter.
 
-        Parameters:
-            dataset (Dataset): The dataset to be used for initialization.
-            model (Model): The model to be used for initialization.
-            adapter (Adapter): The adapter to be used for initialization.
+        Args:
+            dataset (Dataset): The dataset to be used.
+            model (Model): The model to be used.
+            input_adapter (Type[Adapter] | Adapter, optional): The input adapter to be used. Defaults to Adapter.
+            output_adapter (Type[Adapter] | Adapter, optional): The input adapter to be used. Defaults to Adapter.
 
+        Raises:
+            ValueError: When either input or output adapter are not supplied as types or instances.
+
+        Note:
+            ``input_adapter`` and ``output_adapter`` parameters can be supplied as types or as instances.
         """
+
         self.dataset = dataset
         self.model = model
-        self.adapter = adapter
+        self.input_adapter = input_adapter
+        self.output_adapter = output_adapter
 
-    def get_recommendations(self, *args, **kwargs) -> List:
+    def recommend(self, input, *args, **kwargs) -> List:
         """
         Retrieves recommendations based on the provided arguments.
         Every recommender system must implement this method.
         """
-        input = self.adapter.convert_input(*args, **kwargs)
+        input = self.input_adapter.forward(input, *args, **kwargs)
         output = self.model.forward(input)
-        return self.adapter.convert_output(output, *args, **kwargs)
+        return self.output_adapter.forward(output, *args, **kwargs)
 
 
 class CBSEngine(Engine):
     """
     Class that implements the Content-Based Similarity Engine
     The items are represented in feature space and the engine
-    calculates the similarity between items using the given metric
+    calculates the similarity between items using the given metric.
     """
 
     def __init__(
         self,
-        dataset: ItemDataset,
+        dataset: FeatureDataset,
         model: SimilarityBased,
-        adapter: Adapter,
+        input_adapter: Type[Adapter] | Adapter = FeatureAdapter,
+        output_adapter: Type[Adapter] | Adapter = Adapter,
+        *args,
+        **kwargs,
     ) -> None:
         """
         Initializes the object with the given dataset, model, and adapter.
@@ -65,7 +84,14 @@ class CBSEngine(Engine):
         Returns:
             None
         """
-        super().__init__(dataset, model, adapter)
+        super().__init__(dataset, model, input_adapter, output_adapter, *args, **kwargs)
+
+        if type(self.input_adapter) is type:
+            self.input_adapter = input_adapter(dataset, *args, **kwargs)
+
+        if type(self.output_adapter) is type:
+            self.output_adapter = output_adapter(dataset, *args, **kwargs)
+
         self.model.fit(dataset)
 
 
@@ -80,18 +106,29 @@ class CFBSEngine(Engine):
         self,
         dataset: UtilityMatrix,
         model: SimilarityBased,
-        adapter: Adapter,
+        input_adapter: Type[Adapter] | Adapter = Adapter,
+        output_adapter: Type[Adapter] | Adapter = Adapter,
+        *args,
+        **kwargs,
     ) -> None:
         """
-        Initialize the object with the given dataset, model, and adapter.
+        Initializes the engine with the given dataset, model, input adapter, and output adapter.
 
         Args:
-            dataset (UtilityMatrix): A utility matrix of user-item interactions.
-            model (SimilarityBased): The similarity based model to be used.
-            adapter (Adapter): The adapter to be used.
-
+            dataset (UtilityMatrix): The dataset to be used.
+            model (SimilarityBased): The model to be used.
+            input_adapter (Type[Adapter] | Adapter, optional): The input adapter to be used. Defaults to Adapter.
+            output_adapter (Type[Adapter] | Adapter, optional): The output adapter to be used. Defaults to Adapter.
         Returns:
             None
         """
-        super().__init__(dataset, model, adapter)
+
+        super().__init__(dataset, model, input_adapter, output_adapter, *args, **kwargs)
+
+        if type(self.input_adapter) is type:
+            self.input_adapter = input_adapter(dataset, *args, **kwargs)
+
+        if type(self.output_adapter) is type:
+            self.output_adapter = output_adapter(dataset, *args, **kwargs)
+
         self.model.fit(dataset)

@@ -60,6 +60,14 @@ rstk.server module
    :undoc-members:
    :show-inheritance:
 
+rstk.types module
+-----------------
+
+.. automodule:: rstk.types
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

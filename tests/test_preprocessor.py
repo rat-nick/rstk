@@ -1,8 +1,20 @@
+from textwrap import fill
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from ..src.rstk.preprocess import Preprocessor
+
+
+@pytest.fixture
+def multilabel_preprocessor():
+    df = pd.DataFrame(
+        {
+            "label": ["T1|T2", "T3", "T2|T4|T1", None, "T5", "T1|T2|T3|T4|T5"],
+        }
+    )
+    return Preprocessor(df=df)
 
 
 @pytest.fixture
@@ -17,7 +29,7 @@ def user_dataframe_with_nan(user_dataframe):
 
 
 @pytest.fixture
-def item_preprocessor(item_dataframe):
+def user_preprocessor(item_dataframe):
     return Preprocessor(df=item_dataframe)
 
 
@@ -54,9 +66,14 @@ def test_onehot_encode(user_preprocessor):
         assert f"ftr_{occ}" in columns
 
 
+def test_normalize_with_unkown_method(user_preprocessor):
+    with pytest.raises(ValueError):
+        user_preprocessor.normalize("age", "unknown")
+
+
 def test_normalize_linear(user_preprocessor):
     user_preprocessor.handle_missing_values()
-    user_preprocessor.normalize(["age"], methods=["linear"])
+    user_preprocessor.normalize("age", "linear")
 
     # grab a reference to the data for easy access
     data = user_preprocessor.data
@@ -67,7 +84,7 @@ def test_normalize_linear(user_preprocessor):
 
 def test_normalize_z_score(user_preprocessor):
     user_preprocessor.handle_missing_values()
-    user_preprocessor.normalize(["age"], methods=["z-score"])
+    user_preprocessor.normalize("age", "z-score")
 
     # grab a reference to the data for easy access
     data = user_preprocessor.data
@@ -92,20 +109,10 @@ def test_dropna(user_preprocessor):
     assert num_missing + len(user_preprocessor.data) == start_length
 
 
-def test_fillna(user_preprocessor):
-    mode = user_preprocessor.data["occupation"].mode()[0]
+def test_fillna_mean(user_preprocessor):
     mean = user_preprocessor.data["age"].mean()
 
-    # get the indices of the missing values for occupation
-    indices = user_preprocessor.data[
-        user_preprocessor.data["occupation"].isnull()
-    ].index
-
-    user_preprocessor = user_preprocessor.fillna("occupation", "mode")
-
-    assert (user_preprocessor.data.loc[indices, "occupation"] == mode).all()
-
-    # get the indices of the missing values for occupation
+    # get the indices of the missing values for age
     indices = user_preprocessor.data[user_preprocessor.data["age"].isnull()].index
 
     user_preprocessor.fillna("age", "mean")
@@ -113,9 +120,45 @@ def test_fillna(user_preprocessor):
     assert (user_preprocessor.data.loc[indices, "age"] == mean).all()
 
 
-def test_multilabel_binarize(item_preprocessor):
-    item_preprocessor.multilabel_binarize(["tags"])
-    data = item_preprocessor.data
+def test_fillna_median(user_preprocessor):
+    median = user_preprocessor.data["age"].median()
+
+    # get the indices of the missing values for occupation
+    indices = user_preprocessor.data[user_preprocessor.data["age"].isnull()].index
+
+    user_preprocessor = user_preprocessor.fillna("age", "median")
+
+    assert (user_preprocessor.data.loc[indices, "age"] == median).all()
+
+
+def test_fillna_mode(user_preprocessor):
+    mode = user_preprocessor.data["age"].mode()[0]
+
+    # get the indices of the missing values for occupation
+    indices = user_preprocessor.data[user_preprocessor.data["age"].isnull()].index
+
+    user_preprocessor = user_preprocessor.fillna("age", "mode")
+
+    assert (user_preprocessor.data.loc[indices, "age"] == mode).all()
+
+
+def test_fillna_nominal(user_preprocessor):
+    mode = user_preprocessor.data["occupation"].mode()[0]
+
+    # get the indices of the missing values for occupation
+    indices = user_preprocessor.data[
+        user_preprocessor.data["occupation"].isnull()
+    ].index
+
+    # the strategy should not matter if the column is nominal
+    user_preprocessor = user_preprocessor.fillna("occupation", "mean")
+
+    assert (user_preprocessor.data.loc[indices, "occupation"] == mode).all()
+
+
+def test_multilabel_binarize(multilabel_preprocessor):
+    multilabel_preprocessor.multilabel_binarize(["label"])
+    data = multilabel_preprocessor.data
 
     assert "ftr_T1" in data.columns
     assert "ftr_T2" in data.columns
@@ -124,45 +167,38 @@ def test_multilabel_binarize(item_preprocessor):
     assert "ftr_T5" in data.columns
 
 
-def test_select_features_with_column_names(user_preprocessor):
-    data = user_preprocessor.select_features(columns=["age", "gender"])
-    assert "age" in data.columns
-    assert "gender" in data.columns
-    assert "occupation" not in data.columns
+def test_indexer(user_preprocessor):
+    res = user_preprocessor[:]
+
+    for col in user_preprocessor.data.columns:
+        assert col in res.columns
+
+    res = user_preprocessor[0:2]
+
+    assert "age" in res.columns
+    assert "gender" in res.columns
+    assert "zip code" not in res.columns
+
+    res = user_preprocessor["age", 1:3, 3]
+
+    for col in user_preprocessor.data.columns:
+        assert col in res.columns
 
 
-def test_select_features_with_column_slices(user_preprocessor):
-    data = user_preprocessor.select_features(columns=[slice(0, 2), slice(3, 6)])
-    assert "age" in data.columns
-    assert "gender" in data.columns
-    assert "zip code" in data.columns
-    assert "occupation" not in data.columns
+def test_indexer_fail(user_preprocessor):
+    with pytest.raises(TypeError):
+        user_preprocessor[3.14]
 
 
-def test_select_features_with_regex(user_preprocessor):
-    data = user_preprocessor.select_features(regex=".*e.*")
-    assert "age" in data.columns
-    assert "zip code" in data.columns
-    assert "gender" in data.columns
-    assert "occupation" not in data.columns
-
-
-def test_simple_preprocessing_chain(item_preprocessor):
+def test_simple_preprocessing_chain(user_preprocessor):
 
     data = (
-        item_preprocessor.handle_missing_values(strategy="mean")
-        .multilabel_binarize(["tags"])
-        .normalize(["price"], methods=["z-score"])
-        .onehot_encode(columns=["category"])
-        .select_features(regex="^ftr.*", columns=["price"])
+        user_preprocessor.fillna("age")
+        .onehot_encode(["gender", "occupation"])
+        .normalize("age", "z-score")[:]
     )
 
-    assert "price" in data.columns
-    assert "ftr_T1" in data.columns
-    assert "ftr_T2" in data.columns
-    assert "ftr_T3" in data.columns
-    assert "ftr_T4" in data.columns
-    assert "ftr_T5" in data.columns
-    assert "ftr_X" in data.columns
-    assert "ftr_Y" in data.columns
-    assert "ftr_Z" in data.columns
+    assert "gender" not in data.columns
+    assert "occupation" not in data.columns
+    assert "ftr_F" in data.columns
+    assert "ftr_M" in data.columns

@@ -6,8 +6,8 @@ Also contains definitions for the most commonly used engines.
 from abc import ABC
 from typing import List, Type
 
-from .adapter import Adapter, FeatureAdapter
-from .dataset import Dataset, FeatureDataset, UtilityMatrix
+from .adapter import Adapter, FeatureAdapter, IDAdapter
+from .data import Dataset, FeatureDataset, UtilityMatrix
 from .model import Model, SimilarityBased
 
 
@@ -20,10 +20,8 @@ class Engine(ABC):
         self,
         dataset: Dataset,
         model: Model,
-        input_adapter: Type[Adapter] | Adapter = Adapter,
-        output_adapter: Type[Adapter] | Adapter = Adapter,
-        *args,
-        **kwargs,
+        input_adapter: Type[Adapter] | Adapter = Adapter(),
+        output_adapter: Type[Adapter] | Adapter = Adapter(),
     ) -> None:
         """
         Base class for all recommender engines.

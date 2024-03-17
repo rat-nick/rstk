@@ -2,8 +2,8 @@ import pandas as pd
 import pytest
 from requests import head
 
-from ..src.rstk.adapter import Adapter
-from ..src.rstk.dataset import FeatureDataset, UtilityMatrix
+from ..src.rstk.adapter import Adapter, IDAdapter
+from ..src.rstk.data import FeatureDataset, UtilityMatrix
 from ..src.rstk.engine import CBSEngine, CFBSEngine
 from ..src.rstk.model import SimilarityBased
 from ..src.rstk.preprocess import Preprocessor
@@ -26,8 +26,6 @@ def item_dataset(item_dataframe):
     dataset = FeatureDataset(item_dataframe)
 
     assert hasattr(dataset, "data")
-    assert hasattr(dataset, "inner2raw")
-    assert hasattr(dataset, "raw2inner")
 
     return dataset
 
@@ -43,8 +41,6 @@ def user_dataset(user_dataframe):
     dataset = FeatureDataset(user_dataframe)
 
     assert hasattr(dataset, "data")
-    assert hasattr(dataset, "inner2raw")
-    assert hasattr(dataset, "raw2inner")
 
     return dataset
 
@@ -67,7 +63,14 @@ def utility_matrix(user_item_interaction_dataframe):
 @pytest.fixture
 def cbs_engine(item_dataset):
     model = SimilarityBased()
-    engine = CBSEngine(item_dataset, model)
+    input_adapter = Adapter()
+
+    engine = CBSEngine(
+        item_dataset,
+        model,
+        output_adapter=IDAdapter(item_dataset).inverted,
+        input_adapter=input_adapter,
+    )
     return engine
 
 

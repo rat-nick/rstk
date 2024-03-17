@@ -1,2 +1,3 @@
-sphinx-apidoc -o docs rstk
+cd ..
+sphinx-apidoc -o docs src
 make -C docs html

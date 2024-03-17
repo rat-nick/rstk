@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from ..src.rstk.adapter import Adapter, AdapterBuilder, FeatureAdapter, IDAdapter
-from ..src.rstk.types import FeatureVector
+from ..src.rstk.data import FeatureVector
 
 
 @pytest.fixture

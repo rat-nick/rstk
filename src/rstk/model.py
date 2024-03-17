@@ -8,7 +8,7 @@ from typing import Callable
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .dataset import Dataset
+from .data import Dataset, FeatureVector
 
 
 class Model(ABC):
@@ -18,6 +18,10 @@ class Model(ABC):
         1. To specify how the model should fit the data
         2. To define the way the model performs a forward pass
     """
+
+    def __init__(self, input_type: type, output_type: type) -> None:
+        self.input_type = input_type
+        self.output_type = output_type
 
     @abstractmethod
     def forward(self, *args, **kwargs):
@@ -48,6 +52,8 @@ class SimilarityBased(Model):
     def __init__(
         self,
         similarity_measure: Callable = cosine_similarity,
+        *args,
+        **kwargs,
     ):
         """
         Initialize the class with the given distance measure.
@@ -55,6 +61,7 @@ class SimilarityBased(Model):
         Args:
             distance_measure (Callable, optional): The distance measure to use. Defaults to cosine_similarity.
         """
+        super().__init__(*args, **kwargs)
         self.similarity_measure = similarity_measure
 
     def forward(self, vector: np.array) -> np.array:
@@ -62,10 +69,10 @@ class SimilarityBased(Model):
         Calculates the distances between the input vector and the data,
         sorts the distances in descending order, and returns the indices.
         """
-        vector = vector.reshape(1, -1)
+        vector = self.input_type(vector)
         similarities = self.similarity_measure(vector, self.data)[0]
         indicies = np.argsort(similarities)[::-1]
-        return indicies
+        return self.output_type(indicies)
 
     def fit(self, dataset: Dataset) -> None:
         """
@@ -77,4 +84,4 @@ class SimilarityBased(Model):
         Returns:
             None
         """
-        self.data = dataset.features
+        self.data = dataset.data

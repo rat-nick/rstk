@@ -6,14 +6,20 @@ from typing import List, Literal
 
 import pandas as pd
 
+from .data import FeatureSelector
+
 z_score = lambda x, mean, std: (x - mean) / std
 linear = lambda x, min, max: (x - min) / (max - min)
 
 
-class Preprocessor:
+class Preprocessor(FeatureSelector):
     """
     The basic class used for data preprocessing. It can be used for loading the dataset or can be used with an existing dataframe.
     Contains a variety of standard methods for data preprocessing that should be called with method chaining.
+
+    Attr:
+        data (pd.DataFrame): The dataframe used for preprocessing
+        fs (FeatureSelector): The feature selector
 
     Example::
 
@@ -27,7 +33,12 @@ class Preprocessor:
         )
     """
 
-    def __init__(self, path: str = None, df: pd.DataFrame = None, delimiter: str = ","):
+    def __init__(
+        self,
+        path: str | None = None,
+        df: pd.DataFrame | None = None,
+        delimiter: str = ",",
+    ):
         """
         Initializes the object with optional path, DataFrame, and delimiter parameters.
 
@@ -44,6 +55,8 @@ class Preprocessor:
             self.load(path, delimiter)
         elif df is not None:
             self.data = df
+
+        super().__init__(self.data)
 
     def load(self, path: str, delimiter: str = ",") -> "Preprocessor":
         """
@@ -129,71 +142,44 @@ class Preprocessor:
             if strategy == "median":
                 fill_val = self.data[col].median()
             if strategy == "mode":
-                fill_val = self.data[col].mode()
+                fill_val = self.data[col].mode()[0]
 
         return fill_val
 
     def normalize(
-        self,
-        normalization_columns: List[str] = [],
-        methods: List[Literal["linear", "z-score"]] = None,
+        self, column: str, method: Literal["z-score", "linear"] = "linear"
     ) -> "Preprocessor":
         """
-        Performs column-wise normalization of the data using the specified methods.
+        Performs normalization on the given column using the specified method.
 
-        Parameters
-        ----------
-        normalization_columns : List[str], optional
-            A list of columns to be normalized, by default []
-        methods : List[Literal['linear', 'z, optional
-            A list od normalization methods to be performed on the given columns, respectively, by default None
+        Args:
+            column (str): The name of the column to normalize.
+            method (str): The normalization method to use, either "z-score" or "linear".
 
-        Returns
-        -------
-        Preprocessor
-            The preprocessor instance
+        Returns:
+            Preprocessor: The updated Preprocessor object.
 
-        Raises
-        ------
-        ValueError
-            If the lenght of the methods arguments doesn't match the length of the normalization_columns
+        Raises:
+            ValueError: If the specified method is not supported.
         """
+        if method == "z-score":
+            # perform z-score normalization
+            self.data[column] = z_score(
+                self.data[column], self.data[column].mean(), self.data[column].std()
+            )
 
-        if len(normalization_columns) > 0 and methods == None:
-            methods = len(normalization_columns) * ["linear"]
-        if len(methods) != len(normalization_columns):
-            raise ValueError("Method and column lists must be of equal length.")
+        elif method == "linear":
+            # perform linear normalization
+            self.data[column] = linear(
+                self.data[column], self.data[column].min(), self.data[column].max()
+            )
 
-        for col, meth in zip(normalization_columns, methods):
-            self._normalize_column(col, meth)
+        else:
+            raise ValueError("Invalid normalization method.")
 
         return self
 
-    def _normalize_column(self, col, meth):
-        """
-        Performs the given normalization method on the given column
-
-        Parameters
-        ----------
-        col : _type_
-            The column identifier
-        meth : _type_
-            The method to be performed
-        """
-        if meth == "z-score":
-            # perform z-score normalization
-            self.data[col] = z_score(
-                self.data[col], self.data[col].mean(), self.data[col].std()
-            )
-
-        elif meth == "linear":
-            # perform linear normalization
-            self.data[col] = linear(
-                self.data[col], self.data[col].min(), self.data[col].max()
-            )
-
-    def onehot_encode(self, columns: List[str] = []) -> "Preprocessor":
-        # TODO change parameter to be a column range type
+    def onehot_encode(self, columns: List[str]) -> "Preprocessor":
         """
         Performs one-hot encoding on the given columns. The resulting colums have the prefix `ftr_`
 
@@ -236,39 +222,3 @@ class Preprocessor:
             self.data.drop(columns=col, inplace=True)
             self.data = pd.concat([self.data, binarized_labels], axis=1)
         return self
-
-    def select_features(
-        self,
-        columns: List[str | slice] = None,
-        regex: str = None,
-    ) -> pd.DataFrame:
-        # TODO add support for slices
-        """
-        Selects the given features using a column range and regex.
-
-        Args:
-            columns (List[str] | str, optional): List of column indentifiers or ranges. Defaults to None.
-            regex (str, optional): The regex to be used for selecting columns. Defaults to None.
-
-        Raises:
-            ValueError: If no parameters are provided
-
-        Returns:
-            pd.DataFrame: The resulting dataframe
-        """
-
-        df = pd.DataFrame()
-
-        if regex is not None:
-            df = self.data.filter(regex=regex, axis=1)
-
-        if columns is not None:
-            for element in columns:
-                if type(element) == str:
-                    df = pd.concat([df, self.data[element]], axis=1)
-                elif type(element) == slice:
-                    df = pd.concat([df, self.data.iloc[:, element]], axis=1)
-                else:
-                    raise ValueError("Columns must be either a string or a slice")
-
-        return df

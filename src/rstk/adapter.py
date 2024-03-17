@@ -5,7 +5,7 @@ Also contains definitions for the most commonly used adapters.
 
 from typing import Callable, Iterable
 
-from .dataset import Dataset, FeatureDataset
+from .data import Dataset, FeatureDataset
 
 
 def identity(x):

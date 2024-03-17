@@ -7,7 +7,7 @@ from abc import ABC
 import numpy as np
 import pandas as pd
 
-from .types import FeatureVector
+from .types import InteractionMatrix
 
 
 class IDLookup:
@@ -50,6 +50,15 @@ class Dataset(ABC):
         """
         self.data = data
         self.lookup = IDLookup(data.index.to_series())
+
+    @property
+    def features(self):
+        """
+        Returns the data as a numpy array.
+        """
+        if type(self.data) is np.ndarray:
+            return self.data
+        return self.data.to_numpy()
 
     def __len__(self):
         """
@@ -106,27 +115,48 @@ class FeatureDataset(Dataset):
 
             # if no features are provided, get all numeric columns and drop columns containing NaN
             if features is None:
-                self.features = self.data.select_dtypes(include="number")
-                self.features = self.features.dropna(axis=1)
+                self.data = self.data.select_dtypes(include="number")
+                self.data = self.data.dropna(axis=1)
             # subset the features
             if type(features) == list:
-                self.features = self.data[features]
+                self.data = self.data[features]
 
             # if its a regex
             if type(features) == str:
-                self.features = self.data.filter(regex=features, axis=1)
+                self.data = self.data.filter(regex=features, axis=1)
 
-            if self.features is None:
+            if self.data is None:
                 raise ValueError("features parameter must be provided")
-
-            if type(self.features) is pd.DataFrame:
-                self.features = self.features.to_numpy()
 
         else:
             raise ValueError("data must be a DataFrame or Series")
 
-    def __getitem__(self, idx) -> FeatureVector:
+    def __getitem__(self, idx) -> "FeatureVector":
         return FeatureVector(self.features[idx])
+
+    @property
+    def n_features(self):
+        """
+        Returns the number of features in the dataset.
+        """
+        return len(self.data.columns)
+
+
+class FeatureVector(np.ndarray):
+    """
+    Vector in feature space representing one item
+    """
+
+    def __init__(
+        self,
+        dataset: FeatureDataset,
+        interaction_matrix: InteractionMatrix,
+    ) -> None:
+        super().__init__()
+        dimensions = dataset.n_features
+        self = np.zeros(dimensions)
+        for interaction in interaction_matrix.data:
+            self += interaction[2] * dataset.data[interaction[1]]
 
 
 class UtilityMatrix(Dataset):
@@ -180,21 +210,14 @@ class UtilityMatrix(Dataset):
 
         self._build_matrix()
 
-    def __getitem__(self, idx) -> FeatureVector:
-        return FeatureVector(self.features[idx])
+    def __getitem__(self, idx) -> FeatureDataset:
+        return FeatureVector(self.data[idx])
 
     def _build_matrix(self):
         self.matrix = np.ndarray((len(self.user_lookup), len(self.item_lookup)))
 
         # set the values in the matrix such that the value is the rating
         self.matrix[self.data["user"], self.data["item"]] = self.data["rating"]
-
-    @property
-    def features(self) -> np.ndarray:
-        """
-        Returns the utility matrix as a numpy array.
-        """
-        return self.matrix
 
 
 class Trainset:
@@ -220,3 +243,69 @@ class Trainset:
 
     def __getitem__(self, idx):
         return self.data.iloc[idx]
+
+
+class FeatureSelector:
+    """
+    Interface allowing classes that implement it to select features with the ``[]`` operator.
+
+    Example::
+
+        selector["a"]
+        selector[0:2]
+        selector[0:2, 5:, "c"]
+    """
+
+    def __init__(self, data: pd.DataFrame) -> None:
+        """
+        Sets the data field.
+
+        Parameters:
+            data (pd.DataFrame): The dataframe object.
+
+        Returns:
+            None
+        """
+        self.data = data
+
+    def __getitem__(self, *args) -> pd.DataFrame:
+        """
+        Get item from the DataFrame using column labels, column slices, or column indices.
+
+        Parameters:
+            args: tuple - A tuple of column labels, column slices, or column indices.
+
+        Returns:
+            pd.DataFrame - A DataFrame containing the selected items.
+
+        Raises:
+            TypeError - If the 'data' field does not exist, or if the column type is not a string, slice, or integer.
+        """
+        if not hasattr(self, "data"):
+            raise TypeError("There is not data field")
+
+        res = pd.DataFrame()
+
+        if type(args[0]) is not tuple:
+            arg = args[0]
+            if type(arg) == str:
+                res = pd.concat([res, self.data[arg]], axis=1)
+            elif type(arg) == slice:
+                res = pd.concat([res, self.data.iloc[:, arg]], axis=1)
+            elif type(arg) == int:
+                res = pd.concat([res, self.data.iloc[:, arg]], axis=1)
+            else:
+                raise TypeError("Column must be either a string, slice or int")
+            return res
+
+        for arg in args[0]:
+            if type(arg) == str:
+                res = pd.concat([res, self.data[arg]], axis=1)
+            elif type(arg) == slice:
+                res = pd.concat([res, self.data.iloc[:, arg]], axis=1)
+            elif type(arg) == int:
+                res = pd.concat([res, self.data.iloc[:, arg]], axis=1)
+            else:
+                raise TypeError("Columns must be either a string, slice or int")
+
+        return res

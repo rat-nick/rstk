@@ -1,21 +1,14 @@
 import numpy as np
 import pytest
 
-from ..src.rstk.model import SimilarityBased
-
-
-@pytest.fixture
-def similarity_based_model(item_dataset) -> SimilarityBased:
-    model = SimilarityBased()
-    model.fit(item_dataset)
-    return model
+from ..src.rstk.data.types import Recommendation
 
 
 def test_forward(similarity_based_model):
     feature_vector = np.array([0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-    output = similarity_based_model.forward(feature_vector)
-
-    assert output[:5].tolist() == [28, 230, 253, 23, 575]
+    output: Recommendation = similarity_based_model.forward(feature_vector)
+    output = output.ids[:5]
+    assert output == [28, 230, 23, 253, 398]
 
 
 def test_fit(similarity_based_model, item_dataset):

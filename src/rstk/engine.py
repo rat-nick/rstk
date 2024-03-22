@@ -4,10 +4,10 @@ Also contains definitions for the most commonly used engines.
 """
 
 from abc import ABC
-from typing import List, Type
+from typing import Any, List, Type
 
-from .adapter import Adapter, FeatureAdapter, IDAdapter
-from .data import Dataset, FeatureDataset, UtilityMatrix
+from .data.dataset import Dataset, FeatureDataset, UtilityMatrix
+from .data.types import ConversionRegistry, InteractionMatrix, Recommendation
 from .model import Model, SimilarityBased
 
 
@@ -20,8 +20,8 @@ class Engine(ABC):
         self,
         dataset: Dataset,
         model: Model,
-        input_adapter: Type[Adapter] | Adapter = Adapter(),
-        output_adapter: Type[Adapter] | Adapter = Adapter(),
+        input_type: Type = InteractionMatrix,
+        output_type: Type = Recommendation,
     ) -> None:
         """
         Base class for all recommender engines.
@@ -42,17 +42,22 @@ class Engine(ABC):
 
         self.dataset = dataset
         self.model = model
-        self.input_adapter = input_adapter
-        self.output_adapter = output_adapter
+        self.input_type = input_type
+        self.output_type = output_type
 
-    def recommend(self, input, *args, **kwargs) -> List:
+    def recommend(self, input: Any) -> List:
         """
         Retrieves recommendations based on the provided arguments.
         Every recommender system must implement this method.
         """
-        input = self.input_adapter.forward(input, *args, **kwargs)
+        input = ConversionRegistry.convert(
+            self.input_type, self.model.input_type, input, self.dataset
+        )
         output = self.model.forward(input)
-        return self.output_adapter.forward(output, *args, **kwargs)
+        output = ConversionRegistry.convert(
+            self.model.output_type, self.output_type, output, self.dataset
+        )
+        return output
 
 
 class CBSEngine(Engine):
@@ -66,8 +71,6 @@ class CBSEngine(Engine):
         self,
         dataset: FeatureDataset,
         model: SimilarityBased,
-        input_adapter: Type[Adapter] | Adapter = FeatureAdapter,
-        output_adapter: Type[Adapter] | Adapter = Adapter,
         *args,
         **kwargs,
     ) -> None:
@@ -82,13 +85,7 @@ class CBSEngine(Engine):
         Returns:
             None
         """
-        super().__init__(dataset, model, input_adapter, output_adapter, *args, **kwargs)
-
-        if type(self.input_adapter) is type:
-            self.input_adapter = input_adapter(dataset, *args, **kwargs)
-
-        if type(self.output_adapter) is type:
-            self.output_adapter = output_adapter(dataset, *args, **kwargs)
+        super().__init__(dataset, model, *args, **kwargs)
 
         self.model.fit(dataset)
 
@@ -104,8 +101,6 @@ class CFBSEngine(Engine):
         self,
         dataset: UtilityMatrix,
         model: SimilarityBased,
-        input_adapter: Type[Adapter] | Adapter = Adapter,
-        output_adapter: Type[Adapter] | Adapter = Adapter,
         *args,
         **kwargs,
     ) -> None:
@@ -121,12 +116,6 @@ class CFBSEngine(Engine):
             None
         """
 
-        super().__init__(dataset, model, input_adapter, output_adapter, *args, **kwargs)
-
-        if type(self.input_adapter) is type:
-            self.input_adapter = input_adapter(dataset, *args, **kwargs)
-
-        if type(self.output_adapter) is type:
-            self.output_adapter = output_adapter(dataset, *args, **kwargs)
+        super().__init__(dataset, model, *args, **kwargs)
 
         self.model.fit(dataset)

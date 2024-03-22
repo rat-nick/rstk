@@ -8,7 +8,8 @@ from typing import Callable
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .data import Dataset, FeatureVector
+from .data.dataset import Dataset
+from .data.types import FeatureVector, Recommendation
 
 
 class Model(ABC):
@@ -52,6 +53,8 @@ class SimilarityBased(Model):
     def __init__(
         self,
         similarity_measure: Callable = cosine_similarity,
+        input_type: type = FeatureVector,
+        output_type: type = Recommendation,
         *args,
         **kwargs,
     ):
@@ -61,7 +64,7 @@ class SimilarityBased(Model):
         Args:
             distance_measure (Callable, optional): The distance measure to use. Defaults to cosine_similarity.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(input_type, output_type, *args, **kwargs)
         self.similarity_measure = similarity_measure
 
     def forward(self, vector: np.array) -> np.array:
@@ -70,9 +73,9 @@ class SimilarityBased(Model):
         sorts the distances in descending order, and returns the indices.
         """
         vector = self.input_type(vector)
-        similarities = self.similarity_measure(vector, self.data)[0]
-        indicies = np.argsort(similarities)[::-1]
-        return self.output_type(indicies)
+        vector = vector.reshape(1, -1)
+        sim = self.similarity_measure(vector, self.data)[0]
+        return self.output_type(sim)
 
     def fit(self, dataset: Dataset) -> None:
         """
@@ -84,4 +87,4 @@ class SimilarityBased(Model):
         Returns:
             None
         """
-        self.data = dataset.data
+        self.data = dataset.data.to_numpy()

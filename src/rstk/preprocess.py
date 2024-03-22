@@ -6,7 +6,7 @@ from typing import List, Literal
 
 import pandas as pd
 
-from .data import FeatureSelector
+from .data.dataset import FeatureSelector
 
 z_score = lambda x, mean, std: (x - mean) / std
 linear = lambda x, min, max: (x - min) / (max - min)

@@ -7,7 +7,9 @@ import pickle
 import click
 import pandas as pd
 
-# from .model._knn import KNN
+from .data.dataset import FeatureDataset
+from .engine import CBSEngine
+from .model import SimilarityBased
 from .preprocess import Preprocessor
 from .server import serve
 
@@ -27,15 +29,13 @@ def main():
 @click.argument(
     "algorithm",
     type=click.Choice(
-        ["content-knn", "user-cf-knn", "item-cf-knn"],
+        [
+            "content-based-similarity",
+            "colaborative-filtering-similarity",
+        ],
     ),
 )
 @click.argument("dataset", type=click.Path(exists=True))
-@click.option(
-    "--feature-range",
-    help="Range of features to use ie. :5, 10:12, 15",
-    type=str,
-)
 @click.option(
     "--model-path",
     default="model.pkl",
@@ -53,28 +53,30 @@ def main():
     help="The name of the column in the dataset that contains the item IDs",
     type=str,
 )
-def build(algorithm, dataset, model_path, feature_range, delimiter, id_column):
+def build(algorithm, dataset, model_path, delimiter, id_column):
     """
-    CLI function that builds and serializes a recommender engine.
+    Builds a recommendation model using the given algorithm on the given dataset
     """
     click.echo("Building recommender system...")
     click.echo("Algorithm: %s" % algorithm)
     click.echo("Dataset: %s" % dataset)
     click.echo("Model path: %s" % model_path)
 
-    df = pd.read_csv(dataset, delimiter=delimiter)
+    if algorithm == "content-based-similarity":
+        # load the data
+        data = pd.read_csv(dataset, delimiter=delimiter, index_col=id_column)
+        # perform preprocessing
+        pp = Preprocessor(df=data)
+        pp = pp.handle_missing_values()[:]
+        # create the Dataset object
+        dataset = FeatureDataset(data)
+        engine = CBSEngine(dataset=dataset, model=SimilarityBased())
+        click.echo("Training model...")
+        engine.model.fit(dataset)
+        click.echo("Saving model...")
 
-    if id_column is not None:
-        df = df.set_index(id_column)
-    pp = Preprocessor(df=df)
-
-    if feature_range is not None:
-        df = pp.select_features(columns=feature_range)
-
-    if algorithm == "content-knn":
-        model = KNN(df)
-        model.serialize(model_path)
-        print("Finished building content based KNN model.")
+        with open(model_path, "wb") as f:
+            pickle.dump(engine, f)
 
 
 @main.command()

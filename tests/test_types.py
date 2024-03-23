@@ -42,5 +42,9 @@ def test_im2fv(matrix_from_df, item_dataset):
     assert fv.shape == (item_dataset.n_features,)
 
 
-def test_conversions(matrix_from_iterable, implicit, explicit_ratings):
-    
+def test_exp2imp(explicit_ratings):
+    imp = ConversionRegistry.convert(Explicit, Implicit, explicit_ratings)
+    assert len(imp) == 3
+    assert imp[3] == (1, 102931)
+    assert imp[2] == (1, 102933)
+    assert imp[7] == (1, 102920)

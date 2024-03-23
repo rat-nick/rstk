@@ -1,29 +1,21 @@
 rstk package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   rstk.data
+
 Submodules
 ----------
-
-rstk.adapter module
--------------------
-
-.. automodule:: rstk.adapter
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 rstk.cli module
 ---------------
 
 .. automodule:: rstk.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-rstk.dataset module
--------------------
-
-.. automodule:: rstk.dataset
    :members:
    :undoc-members:
    :show-inheritance:

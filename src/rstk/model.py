@@ -87,4 +87,4 @@ class SimilarityBased(Model):
         Returns:
             None
         """
-        self.data = dataset.data.to_numpy()
+        self.data = dataset.features

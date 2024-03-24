@@ -9,7 +9,7 @@ from ..src.rstk.data.types import (
     InteractionMatrix,
     Recommendation,
 )
-from ..src.rstk.engine import CBSEngine, CFBSEngine
+from ..src.rstk.engine import CBSEngine, CFSEngine
 from ..src.rstk.model import SimilarityBased
 from ..src.rstk.preprocess import Preprocessor
 
@@ -108,9 +108,7 @@ def utility_matrix(user_item_interaction_dataframe):
     assert hasattr(dataset, "matrix")
     assert hasattr(dataset, "user_lookup")
     assert hasattr(dataset, "item_lookup")
-    assert "user" in dataset.data.columns
-    assert "item" in dataset.data.columns
-    assert "rating" in dataset.data.columns
+
     return dataset
 
 
@@ -130,5 +128,5 @@ def cbs_engine(item_dataset):
 @pytest.fixture
 def cfbs_engine(utility_matrix):
     model = SimilarityBased()
-    engine = CFBSEngine(utility_matrix, model)
+    engine = CFSEngine(utility_matrix, model)
     return engine

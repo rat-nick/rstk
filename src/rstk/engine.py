@@ -90,9 +90,9 @@ class CBSEngine(Engine):
         self.model.fit(dataset)
 
 
-class CFBSEngine(Engine):
+class CFSEngine(Engine):
     """
-    Class that implements the Collaborative-Filtering Based Similarity Engine.
+    Class that implements the Collaborative-Filtering Similarity Engine.
     The items features are the user ratings.
 
     """
